@@ -55,9 +55,13 @@ resource "aws_instance" "recensioni-film" {
             cd /home/ec2-user/work
             sudo git clone https://FedericoQuartieri:674127aQ@github.com/FedericoQuartieri/API-recensioni-film
             cd API-recensioni-film
-            node main.js
         EOF
 }
+
+output "IP" {
+    value = aws_instance.recensioni-film.public_ip
+}
+
 
 /*
 sudo yum install httpd -y
