@@ -37,7 +37,21 @@ resource "aws_security_group" "recensioni_film"{
     }
 }
 
-
+resource "aws_db_instance" "RecensioniDB" {
+  allocated_storage         = 20
+  storage_type              = "gp2"
+  engine                    = "mysql"
+  engine_version            = "5.7"
+  instance_class            = "db.t3.micro"
+  name                      = "recensioniFilm"
+  identifier                = "recensioni-film"
+  username                  = "FedericoQuartier"
+  password                  = var.db_password
+  parameter_group_name      = "default.mysql5.7"
+  port                      = 3306
+  publicly_accessible       = true
+  skip_final_snapshot       = true
+}
 
 resource "aws_instance" "recensioni-film" {
     ami           = "ami-0759301b88845d121"
@@ -55,19 +69,18 @@ resource "aws_instance" "recensioni-film" {
             cd /home/ec2-user/work
             sudo git clone https://FedericoQuartieri:674127aQ@github.com/FedericoQuartieri/API-recensioni-film
             cd API-recensioni-film
-            node main.js
+            echo ${aws_db_instance.RecensioniDB.endpoint} >> ./ip.txt
         EOF
 }
 
-resource "local_file" "ips" {
-  filename = "API/output.txt"
-  content = aws_instance.recensioni-film.public_ip
-}
 
 output "IP" {
     value = aws_instance.recensioni-film.public_ip
 }
 
+output "ENDPOINT" {
+    value = aws_db_instance.RecensioniDB.endpoint
+}
 
 /*
 sudo yum install httpd -y
