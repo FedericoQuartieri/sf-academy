@@ -9,3 +9,7 @@ variable "secret_key"{
 variable "db_password" {
     type = string
 }
+
+variable "github_pass" {
+    type = string
+}
