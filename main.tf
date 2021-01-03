@@ -74,12 +74,7 @@ resource "aws_db_instance" "RecensioniDB" {
   skip_final_snapshot       = true
   multi_az                  = false
   vpc_security_group_ids    = [aws_security_group.recensioni-film-bd.id]
-  #vpc_security_group_ids = [aws_security_group.recensioni-film-bd.id ]
 }
-
-
-
-#ami-0759301b88845d121
 
 resource "aws_instance" "recensioni-film" {
     
@@ -98,7 +93,6 @@ resource "aws_instance" "recensioni-film" {
             cd /home/ec2-user/work
             sudo git clone https://FedericoQuartieri:${var.github_pass}@github.com/FedericoQuartieri/API-recensioni-film
             cd API-recensioni-film
-            echo ${aws_db_instance.RecensioniDB.endpoint} >> ./ip.txt
             npm install
             node main.js
         EOF
@@ -112,30 +106,3 @@ output "IP" {
 output "ENDPOINT" {
     value = aws_db_instance.RecensioniDB.endpoint
 }
-
-/*
-sudo yum install httpd -y
-sudo systemctl start httpd
-sudo systemctl enable httpd
-echo "$var.index" >> /var/www/html/index.html
-
-tags = {
-    Name = "webserver"
-}
-
-output "a" {
-    value = module.index
-}
-
-resource "local_file" "index" {
-    filename = "index.html"
-}
-
-data "template_file" "index" {
-    template = tostring(file("index.html"))
-}
-
-variable "index" {
-    type = string
-}
-*/
