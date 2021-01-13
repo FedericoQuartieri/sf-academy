@@ -86,17 +86,13 @@ resource "aws_instance" "recensioni-film" {
     user_data = <<-EOF
             #! /bin/bash
             sudo su
-            curl -sL https://rpm.nodesource.com/setup_lts.x | sudo bash -
-            sudo yum -y install nodejs
-            sudo yum -y install git
-            mkdir /home/ec2-user/work 
-            cd /home/ec2-user/work
-            sudo git clone https://FedericoQuartieri:${var.github_pass}@github.com/FedericoQuartieri/API-recensioni-film
-            cd API-recensioni-film
-            npm install
-            node main.js
+            sudo yum install docker -y
+            sudo service docker start
+            sudo docker run -p 80:80 federicoquartieri/recensioni-film
         EOF
 }
+
+
 
 
 output "IP" {
