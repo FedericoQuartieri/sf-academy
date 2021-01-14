@@ -85,10 +85,12 @@ resource "aws_instance" "recensioni-film" {
 
     user_data = <<-EOF
             #! /bin/bash
-            sudo su
+            sudo yum update -y
             sudo yum install docker -y
             sudo service docker start
-            sudo docker run -p 80:80 federicoquartieri/recensioni-film
+            sudo usermod -a -G docker ec2-user
+            sudo docker pull federicoquartieri/recensioni-film
+            sudo docker run -d -p 80:80 federicoquartieri/recensioni-film
         EOF
 }
 
