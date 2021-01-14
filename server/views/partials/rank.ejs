@@ -1,0 +1,194 @@
+<% var rank = ranks%>
+
+
+<h1 class = table-title>Rankings</h1>
+<table class = gen-table id = gen-table>
+    <thead id = gen-thread>
+        <tr>
+            <th>Film</th>
+            <th>Genre</th>
+            <th>Rating</th>
+        </tr>
+    </thead>
+</table>
+
+<div id = notgen-container>
+    <div id = notgen-container-1>
+        <table class = notgen id = Action>
+            <caption class = "notgen-caption" >Action</caption>
+            <thead>
+                <tr>
+                    <th>Film</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+        </table>
+
+        <table class = notgen id = Drama>
+            <caption class = "notgen-caption" >Drama</caption>
+            <thead>
+                <tr>
+                    <th>Film</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div id = notgen-container-2>
+        <table class = notgen id = Adventure>
+            <caption class = "notgen-caption" >Adventure</caption>
+            <thead>
+                <tr>
+                    <th>Film</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+        </table>
+
+
+        <table class = notgen id = Comedy>
+            <caption class = "notgen-caption" >Comedy</caption>
+            <thead>
+                <tr>
+                    <th>Film</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+
+<script>
+
+    var popolate =(id, array, big, genre) => {
+        const table = document.getElementById(id)
+        const tbody = document.createElement("tbody")
+        table.appendChild(tbody)
+        if(genre){
+            const thread = document.getElementById("gen-thread")
+            console.log(thread.childNodes[1].innerHTML)
+            if(thread.childNodes[1].innerHTML !== undefined){
+                thread.childNodes[1].remove()
+            }
+            else{
+                thread.childNodes[2].remove()
+            }
+            const tr1 = document.createElement("tr")
+            thread.appendChild(tr1)
+            const th1 = document.createElement("th")
+            th1.innerHTML = "Film"
+            tr1.appendChild(th1)
+            const th2 = document.createElement("th")
+            th2.innerHTML = "Plot"
+            tr1.appendChild(th2)
+            const th4 = document.createElement("th")
+            th4.innerHTML = "Box Office"
+            tr1.appendChild(th4)
+            const th5 = document.createElement("th")
+            th5.innerHTML = "Rating"
+            tr1.appendChild(th5)
+        }
+        i = 0
+        array.forEach(element => {
+            if (i < 8 && big){
+                const tr = document.createElement("tr")
+                const td1 = document.createElement("td")
+                td1.innerHTML = element.film
+                tr.appendChild(td1)
+                if (big && !genre){
+                    const td2 = document.createElement("td")
+                    td2.innerHTML = element.genre
+                    tr.appendChild(td2)
+                }
+                if(genre){
+                    const td3 = document.createElement("td")
+                    td3.innerHTML = element.plot
+                    tr.appendChild(td3)
+                    const td4 = document.createElement("td")
+                    td4.innerHTML = element.boxoffice
+                    tr.appendChild(td4)
+                }
+                const td5 = document.createElement("td")
+                td5.innerHTML = Math.round(element.avarage * 10) / 10
+                tr.appendChild(td5)
+                tbody.appendChild(tr)
+                i += 1
+            }
+            else if (i < 3 && !big){
+                const tr = document.createElement("tr")
+                const td1 = document.createElement("td")
+                td1.innerHTML = element.film.substring(0,15)
+                tr.appendChild(td1)
+                if (big && !genre){
+                    const td2 = document.createElement("td")
+                    td2.innerHTML = element.genre
+                    tr.appendChild(td2)
+                }
+                else{
+                    td1.innerHTML = element.film.substring(0,15)
+                }
+                if(genre){
+                    const td3 = document.createElement("td")
+                    td3.innerHTML = element.plot
+                    tr.appendChild(td3)
+                    const td4 = document.createElement("td")
+                    td4.innerHTML = element.boxoffice
+                    tr.appendChild(td4)
+                }
+                const td5 = document.createElement("td")
+                td5.innerHTML = Math.round(element.avarage * 10) / 10
+                tr.appendChild(td5)
+                tbody.appendChild(tr)
+                i += 1
+            }
+        })
+    }
+
+    var change = (id,rank) => {
+        var filtered = rank.filter(element => {
+            if (element.genre === id){
+                return element
+            }
+        })
+        document.getElementById("gen-table").childNodes[3].remove()
+        popolate("gen-table", filtered, true, true)
+    }
+    var rank = '<%- JSON.stringify(rank) %>'
+    rank = rank.replace("'", "")
+    rank = JSON.parse(rank)
+    rank.sort((a, b) => {
+        return b.avarage - a.avarage;
+    });
+    const gen_table = document.getElementById("gen-table")
+    popolate("gen-table", rank, true)
+    var action = rank.filter(element => {
+        if (element.genre === "Action"){
+            return element
+        }
+    })
+    console.log(rank)
+    var drama = rank.filter(element => {
+        if (element.genre === "Drama"){
+            return element
+        }
+    })
+    var adventure = rank.filter(element => {
+        if (element.genre === "Adventure"){
+            return element
+        }
+    })
+    var comedy = rank.filter(element => {
+        if (element.genre === "Comedy"){
+            return element
+        }
+    })
+    popolate("Action", action, false)
+    popolate("Drama", drama, false)
+    popolate("Adventure", adventure, false)
+    popolate("Comedy", comedy, false)
+    document.getElementById("Action").addEventListener("click", function(){change(this.id,rank)})
+    document.getElementById("Drama").addEventListener("click", function(){change(this.id,rank)})
+    document.getElementById("Adventure").addEventListener("click", function(){change(this.id,rank)})
+    document.getElementById("Comedy").addEventListener("click", function(){change(this.id,rank)})
+</script>
