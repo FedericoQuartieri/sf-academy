@@ -101,6 +101,10 @@ output "IP" {
     value = aws_instance.recensioni-film.public_ip
 }
 
+output "DNS" {
+    value = aws_instance.recensioni-film.public_dns
+}
+
 output "ENDPOINT" {
     value = aws_db_instance.RecensioniDB.endpoint
 }

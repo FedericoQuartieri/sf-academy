@@ -6,36 +6,35 @@ var urlencodedParser = bodyParser.urlencoded({ extended: true })
 var mysql = require('mysql');
 var mysql_sync = require('sync-mysql');
 var request = require('sync-request');
-//const bcrypt = require('bcrypt');
-var bcrypt = require('bcryptjs');
-
-var user = null
-var user1 = null
-var search = null
-var ranks = null
-var wp = null
-var ws = null
-var avg_vote = null
-var found = true
-var voted = false
-
+var bcrypt = require('bcryptjs')
+var session = require('express-session');
 var port = 80
 
 var connection = mysql.createConnection({
-  host     : "recensioni-film.chitc2vxxsl5.eu-central-1.rds.amazonaws.com",
-  user     : "FedericoQuartier",
-  password : "3930382475",
-  database : "p2",
+  host     : process.env.DB_HOST,
+  user     : process.env.DB_USER,
+  password : process.env.DB_PASS,
+  database : "recensioniFilm",
+  connectionLimit : 1000,
+  connectTimeout  : 60 * 60 * 1000,
+  acquireTimeout  : 60 * 60 * 1000,
+  timeout         : 60 * 60 * 1000,
   port     : 3306
 })
 
 var connection_sync = new mysql_sync({
-  host     : "recensioni-film.chitc2vxxsl5.eu-central-1.rds.amazonaws.com",
-  user     : "FedericoQuartier",
-  password : "3930382475", 
-  database : "p2",
+  host     : process.env.DB_HOST,
+  user     : process.env.DB_USER,
+  password : process.env.DB_PASS,
+  database : "recensioniFilm",
+  connectionLimit : 1000,
+  connectTimeout  : 60 * 60 * 1000,
+  acquireTimeout  : 60 * 60 * 1000,
+  timeout         : 60 * 60 * 1000,
   port     : 3306
 })
+
+
 
 var hashing = (password) => {
   var salt = bcrypt.genSaltSync(10);
@@ -124,43 +123,54 @@ connection.connect()
 connection_sync.query(`CREATE TABLE IF NOT EXISTS users (username varchar(255), password varchar(255));`)
 connection_sync.query(`CREATE TABLE IF NOT EXISTS votes (username varchar(255), film varchar(255), vote int);`)
 connection_sync.query(`CREATE TABLE IF NOT EXISTS ranks (film varchar(255), genre varchar(255), plot varchar(1000), boxoffice varchar(50), avarage float, PRIMARY KEY (film));`)
-//popolate_tables()
+popolate_tables()
 
 app.set("view engine", "ejs")
 app.use(express.static("public"))
 app.use(express.static("node_modules/bootstrap"))
+app.use(session({ secret: 'keyboard cat',resave:false,saveUninitialized:false, cookie: { maxAge: 60000 }}));
 
 app.get('/', (req, res) => {
-  found = true 
+  var found = true 
+  var search = req.session.search
+  if (search === undefined){
+    search = null
+  }
   if (search !== null){
     if (search.Response === "False"){
       search = null
       found = false
     }
   }
-  ranks = connection_sync.query(`SELECT * FROM ranks`)
-  var vote = avg_vote
+  var ranks = connection_sync.query(`SELECT * FROM ranks`)
+  var vote = req.session.avg_vote
   if (vote === null ){vote = "N/A"}
+  var user1 = req.session.user1
+  if (user1 === undefined){
+    user1 = null
+  }
+  voted = req.session.voted
   res.render('index', {user1, search, ranks, vote, found, voted})
 })
 
 app.get('/home', urlencodedParser , (req, res) => {
-  search = null
+  req.session.search = null
   res.redirect("/")
 })
 
 app.post('/signup', (req, res) => {
-  ws = null
+  var ws = null
   res.render("signup", {ws})
 })
 
 app.post('/login', urlencodedParser , (req, res) => {
-  wp = null
+  var wp = null
   res.render("login", {wp})
 })
 
 app.post('/logout', urlencodedParser , (req, res) => {
-  user = null
+  req.session.user1 = null
+  req.session.user = null
   res.redirect("/")
 })
 
@@ -169,25 +179,27 @@ app.post('/log', urlencodedParser , (req, res) => {
   if (result.length !== 0){
     if (!bcrypt.compareSync(req.body.password, result[0].password )){
       console.log("wrong username or password")
-      wp = "Wrong username or password"
+      var wp = "Wrong username or password"
       res.render("login", {wp})
     }
     else {
-      user = req.body.username.toLowerCase()
+      var user = req.body.username.toLowerCase()
       if (user.length > 14){
-        user1 = user.substring(0,14)
+        var user1 = user.substring(0,14)
         user1 += "..."
       } 
       else{
         user1 = user
       }
+      req.session.user = user
+      req.session.user1 = user1
       console.log("logged in")
       res.redirect("/")
     }
   }
   else {
     console.log("wrong username or password")
-    wp = "Wrong username or password"
+    var wp = "Wrong username or password"
     res.render("login", {wp})
   }
 })
@@ -197,8 +209,8 @@ app.post('/sign', urlencodedParser , (req, res) => {
     if (req.body.password == req.body.confirm_password){
       var validity = validation(req.body.username)
       if (validity)  {
-        ws = null
-        wp = null
+        var ws = null
+        var wp = null
         var hash = hashing(req.body.password)
         connection.query(`INSERT INTO users VALUES("${req.body.username}", "${hash}")`, (err,result) => {
           if(err) throw err;
@@ -225,29 +237,30 @@ app.post('/sign', urlencodedParser , (req, res) => {
   
 app.post("/search", urlencodedParser, (req, res)=>{
   search = JSON.parse(request('GET', `http://www.omdbapi.com/?t=${req.body.search.normalize("NFD").replace(/[\u0300-\u036f]/g, "")}&apikey=b5c264d3`).getBody().toString())
-  console.log(search)
-  avg_vote = connection_sync.query(`SELECT AVG(vote) FROM votes WHERE film = "${search.Title}"`)[0]['AVG(vote)']
-  voted = false
+  req.session.avg_vote = connection_sync.query(`SELECT AVG(vote) FROM votes WHERE film = "${search.Title}"`)[0]['AVG(vote)']
+  req.session.voted = false
+  req.session.search = search
   res.redirect("/")
 })
 
 app.post("/vote", urlencodedParser, (req, res)=>{
-  if (user !== null){
-    result = connection_sync.query(`SELECT * FROM votes WHERE film = "${search.Title}" and username = "${user}"`)
+  if (req.session.user !== undefined){
+    result = connection_sync.query(`SELECT * FROM votes WHERE film = "${req.session.search.Title}" and username = "${req.session.user}"`)
     if (result.length === 0){
-      connection.query(`INSERT INTO votes VALUES ("${user}","${search.Title}","${req.body.vote}")`)
-      var avg = connection_sync.query(`SELECT AVG(vote) FROM votes WHERE film = "${search.Title}"`)[0]["AVG(vote)"]
-      connection.query(`INSERT INTO ranks VALUES ("${search.Title.replace(/'/g, "")}","${search.Genre.replace(/ .*/,'').replace(",","")}","${search.Plot.replace(/'/g, "")}","${search.BoxOffice}",${avg}) ON DUPLICATE KEY UPDATE avarage = ${avg}`)
-      search = null
+      connection.query(`INSERT INTO votes VALUES ("${req.session.user}","${req.session.search.Title}","${req.body.vote}")`)
+      var avg = connection_sync.query(`SELECT AVG(vote) FROM votes WHERE film = "${req.session.search.Title}"`)[0]["AVG(vote)"]
+      connection.query(`INSERT INTO ranks VALUES ("${req.session.search.Title.replace(/'/g, "")}","${req.session.search.Genre.replace(/ .*/,'').replace(",","")}","${req.session.search.Plot.replace(/'/g, "")}","${req.session.search.BoxOffice}",${avg}) ON DUPLICATE KEY UPDATE avarage = ${avg}`)
+      req.session.search = null
       voted = true
     }
     else {
       voted = true
     }
+    req.session.voted = voted
     res.redirect("/")
   }
   else {
-    wp = "login first"
+    var wp = "login first"
     res.render("login", {wp})
   }
 })
