@@ -58,6 +58,7 @@ resource "aws_security_group" "recensioni_film"{
     }
 }
 
+
 resource "aws_db_instance" "RecensioniDB" {
   allocated_storage         = 20
   storage_type              = "gp2"
@@ -76,8 +77,14 @@ resource "aws_db_instance" "RecensioniDB" {
   vpc_security_group_ids    = [aws_security_group.recensioni-film-bd.id]
 }
 
+
+resource "time_sleep" "wait_30_seconds" {
+  depends_on = [aws_db_instance.RecensioniDB]
+  create_duration = "30s"
+}
+
 resource "aws_instance" "recensioni-film" {
-    
+    depends_on = [time_sleep.wait_30_seconds]
     ami           = "ami-00a205cb8e06c3c4e"
     instance_type = "t2.micro"
     security_groups = [aws_security_group.recensioni_film.name]
