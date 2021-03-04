@@ -1,0 +1,15 @@
+FROM node:14
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 8080
+CMD [ "npm", "start" ]
+
+#docker build -f Dockerfile.front -t federicoquartieri/front .
+#docker run -d -p 80:80 federicoquartieri/front
+#docker push federicoquartieri/front

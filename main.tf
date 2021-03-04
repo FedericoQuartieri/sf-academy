@@ -96,13 +96,17 @@ resource "aws_instance" "recensioni-film" {
             sudo yum install docker -y
             sudo service docker start
             sudo usermod -a -G docker ec2-user
-            sudo docker pull federicoquartieri/recensioni-film
-            sudo docker run -d -p 80:80 federicoquartieri/recensioni-film
+            sudo docker pull federicoquartieri/server
+            sudo docker pull federicoquartieri/front
+            sudo docker run -d -p 5000:5000 federicoquartieri/server
+            sudo docker run -it -d -p 80:80 federicoquartieri/front
         EOF
 }
 
-
-
+resource "time_sleep" "wait_180_seconds" {
+  depends_on = [aws_instance.recensioni-film]
+  create_duration = "180s"
+}
 
 output "IP" {
     value = aws_instance.recensioni-film.public_ip
