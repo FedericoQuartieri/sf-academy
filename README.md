@@ -1,9 +1,8 @@
-# Recensioni Film
+# Movie reviews
 
-Piattaforma nella quale si può visualizzare e votare film prelevati da [http://www.omdbapi.com](http://www.omdbapi.com/).
-Ogni utente può votare una sola volta uno stesso film e visualizzare la classifica con con la media dei voti degli altri utenti.                                   Il frontend è realizzato in react.
+Platform where users can view and vote for movies retrieved from http://www.omdbapi.com. Each user can vote for the same movie only once and view the ranking with the average ratings from other users.                                   
+The frontend is developed in React.
 
 # API
 
-L'applicativo è hostato su EC2 tramite l'utilizzo di un container di docker, il database è hostato su RDS.
-Le istanze di EC2 e RDS vengono create con Terraform.
+The application is hosted on EC2 using a Docker container, and the database is hosted on RDS. EC2 and RDS instances are created using Terraform.
